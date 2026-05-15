@@ -1,5 +1,6 @@
 import fetch from 'node-fetch'
 import type { NppesRecord } from '../types.js'
+import { lookupTaxonomy } from '../nucc.js'
 
 const BASE = 'https://npiregistry.cms.hhs.gov/api'
 const SOURCE_URL = 'https://npiregistry.cms.hhs.gov'
@@ -16,12 +17,12 @@ export async function fetchNppes(npi: string): Promise<NppesRecord> {
   const results: any[] = data.results ?? []
 
   if (results.length === 0) {
-    // NPI not found — treat as deactivated / unknown
     return {
       npi,
       name: 'NOT FOUND',
       credential: null,
       primaryTaxonomy: null,
+      taxonomyCategory: null,
       practiceAddress: null,
       deactivated: true,
       lastUpdated: new Date().toISOString(),
@@ -42,17 +43,18 @@ export async function fetchNppes(npi: string): Promise<NppesRecord> {
     name = parts.join(' ')
   }
 
-  // Primary practice address
+  // Primary practice address (prefer LOCATION over MAILING)
   const practiceAddr = addresses.find((a: any) => a.address_purpose === 'LOCATION')
     ?? addresses[0]
     ?? null
 
-  // Primary taxonomy
-  const primaryTaxonomy = taxonomies.find((t: any) => t.primary)?.desc
-    ?? taxonomies[0]?.desc
-    ?? null
+  // Primary taxonomy + NUCC category enrichment
+  const primaryTaxEntry = taxonomies.find((t: any) => t.primary) ?? taxonomies[0] ?? null
+  const primaryTaxonomy = primaryTaxEntry?.desc ?? null
+  const primaryTaxCode = primaryTaxEntry?.code ?? null
+  const nuccEntry = primaryTaxCode ? lookupTaxonomy(primaryTaxCode) : null
+  const taxonomyCategoryVal = nuccEntry?.category ?? null
 
-  // Deactivated if status is D
   const deactivated = basic.status === 'D'
 
   return {
@@ -60,6 +62,7 @@ export async function fetchNppes(npi: string): Promise<NppesRecord> {
     name,
     credential: basic.credential ?? null,
     primaryTaxonomy,
+    taxonomyCategory: taxonomyCategoryVal,
     practiceAddress: practiceAddr ? {
       line1: [practiceAddr.address_1, practiceAddr.address_2].filter(Boolean).join(', '),
       city: practiceAddr.city ?? '',
