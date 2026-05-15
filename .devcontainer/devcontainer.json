@@ -1,0 +1,19 @@
+{
+  "name": "Provider Verification Agent",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.fontSize": 14,
+        "editor.fontSize": 14,
+        "editor.formatOnSave": true,
+      },
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"],
+    },
+  },
+  "remoteEnv": {
+    "NODE_ENV": "development",
+  },
+}
