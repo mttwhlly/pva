@@ -1,0 +1,21 @@
+{
+  "name": "provider-verify",
+  "version": "0.1.0",
+  "description": "CAQH continuous provider verification agent — demo",
+  "scripts": {
+    "verify": "tsx src/run.ts",
+    "verify:watch": "nodemon --exec 'tsx src/run.ts' --watch src --ext ts"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "nodemon": "^3.1.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.22.0",
+    "typescript": "^5.4.0"
+  },
+  "type": "module"
+}
