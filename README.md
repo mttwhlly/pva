@@ -1,5 +1,7 @@
 # Provider Verification Agent
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/mttwhlly/pva)
+
 A working demonstration of continuous provider data enrichment — the same pattern
 used by Parallel Web Systems, applied to CAQH's core domain.
 
