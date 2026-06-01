@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CAQH Provider Verification Agent</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* DataSpring — powered by CAQH */
+      --ds-green:  #c5f71f;
+      --ds-violet: #dc85ff;
+      --ds-grey:   #d7d7d7;
+      --ds-black:  #202020;
+      --ds-white:  #ffffff;
+
+      /* Violet shades */
+      --violet-dk:     #8830be;
+      --violet-lt:     #f8eeff;
+      --violet-border: #e6b8ff;
+
+      /* Green shades — derived from #c5f71f lime */
+      --green-lt:     #f6fde0;
+      --green-bdr:    #d8f56e;
+      --green-dk:     #5a7009;
+
+      /* Page chrome */
+      --bg:           #f2f2f2;
+      --surface:      var(--ds-white);
+      --border:       var(--ds-grey);
+      --border-light: #e8e8e8;
+      --text:         var(--ds-black);
+      --text-2:       #555555;
+      --text-3:       #999999;
+
+      /* Status — green uses brand colour; red/amber are semantic */
+      --green:        var(--ds-green);
+      --green-bg:     var(--green-lt);
+      --green-border: var(--green-bdr);
+
+      --amber:        #b45309;
+      --amber-bg:     #fffbeb;
+      --amber-border: #fde68a;
+      --amber-dot:    #d97706;
+
+      --red:          #dc2626;
+      --red-bg:       #fef2f2;
+      --red-border:   #fecaca;
+
+      --indigo:        var(--violet-dk);
+      --indigo-bg:     var(--violet-lt);
+      --indigo-border: var(--violet-border);
+
+      --radius:  8px;
+      --shadow:  0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+      --shadow2: 0 4px 12px rgba(0,0,0,.10), 0 1px 3px rgba(0,0,0,.06);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                   'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Top bar ──────────────────────────────────────────────────────────── */
+    .topbar {
+      background: var(--ds-black);
+      color: #fff;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 10px rgba(0,0,0,.4);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .wordmark {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+    .wordmark em { color: var(--ds-violet); font-style: normal; }
+    .divider {
+      width: 1px; height: 22px;
+      background: rgba(255,255,255,.22);
+    }
+    .run-ts {
+      font-size: 11px;
+      color: rgba(255,255,255,.6);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .run-ts strong { color: rgba(255,255,255,.85); font-weight: 600; }
+
+    .pills { display: flex; gap: 7px; flex-wrap: wrap; }
+    .pill {
+      background: rgba(255,255,255,.11);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 20px;
+      padding: 3px 11px;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,.9);
+      white-space: nowrap;
+    }
+    .pill-high {
+      background: rgba(220,38,38,.22);
+      border-color: rgba(220,38,38,.45);
+      color: #ffaaaa;
+    }
+    .pill-review {
+      background: rgba(220,133,255,.18);
+      border-color: rgba(220,133,255,.4);
+      color: var(--ds-violet);
+    }
+
+    /* ── Filter bar ───────────────────────────────────────────────────────── */
+    .filterbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 50px;
+      gap: 12px;
+    }
+    .filter-group { display: flex; gap: 4px; }
+    .filter-btn {
+      padding: 5px 13px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+    }
+    .filter-btn:hover { background: var(--bg); color: var(--text); }
+    .filter-btn.f-all    { background: var(--ds-violet); border-color: var(--ds-violet); color: var(--ds-black); }
+    .filter-btn.f-high   { background: var(--red);      border-color: var(--red);       color: #fff; }
+    .filter-btn.f-medium { background: var(--amber-dot); border-color: var(--amber-dot); color: #fff; }
+    .filter-btn.f-clear  { background: var(--green); border-color: var(--green); color: var(--ds-black); }
+
+    .sim-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 15px;
+      background: var(--ds-violet);
+      color: var(--ds-black);
+      border: none; border-radius: 6px;
+      font-size: 12px; font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .15s, transform .1s;
+      white-space: nowrap;
+    }
+    .sim-btn:hover  { background: #cc70f5; }
+    .sim-btn:active { transform: scale(.97); }
+    .sim-btn svg    { flex-shrink: 0; }
+
+    .sim-toast {
+      font-size: 11px;
+      color: var(--text-3);
+      max-width: 280px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .sim-toast.visible { opacity: 1; }
+
+    /* ── Main content ─────────────────────────────────────────────────────── */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ── Card ─────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: box-shadow .2s, opacity .2s;
+    }
+    .card:hover { box-shadow: var(--shadow2); }
+    .card.hidden { display: none; }
+
+    @keyframes cardFlash {
+      0%   { box-shadow: 0 0 0 3px var(--ds-violet), var(--shadow2); }
+      65%  { box-shadow: 0 0 0 3px var(--ds-violet), var(--shadow2); }
+      100% { box-shadow: var(--shadow); }
+    }
+    .card.flash { animation: cardFlash 1.5s ease-out; }
+
+    /* card header */
+    .card-head {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .head-left { display: flex; align-items: center; gap: 12px; }
+
+    .status-orb {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .orb-clear  { background: var(--green-bg);  border: 1px solid var(--green-border); }
+    .orb-review { background: var(--amber-bg);  border: 1px solid var(--amber-border); }
+    .orb-high   { background: var(--red-bg);    border: 1px solid var(--red-border);   }
+
+    .prov-name { font-size: 15px; font-weight: 700; }
+    .prov-meta { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      border: 1px solid;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .badge-clear  { color: var(--green-dk); background: var(--green-bg); border-color: var(--green-border); }
+    .badge-review { color: var(--amber); background: var(--amber-bg);  border-color: var(--amber-border); }
+    .badge-high   { color: var(--red);   background: var(--red-bg);    border-color: var(--red-border);   }
+
+    /* source grid */
+    .source-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 14px 20px;
+    }
+    .src-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+    }
+    .src-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .dot-clear  { background: var(--green); }
+    .dot-medium { background: var(--amber-dot); }
+    .dot-high   { background: var(--red); }
+    .dot-neutral{ background: var(--text-3); }
+
+    .src-info { flex: 1; min-width: 0; }
+    .src-name {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-3);
+      margin-bottom: 2px;
+    }
+    .src-summary {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .src-summary.alert-high   { color: var(--red);   font-weight: 600; }
+    .src-summary.alert-medium { color: var(--amber);  font-weight: 600; }
+
+    /* changes section */
+    .changes-section { border-top: 1px solid var(--border-light); }
+
+    .changes-toggle {
+      width: 100%;
+      padding: 9px 20px;
+      background: none; border: none;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 7px;
+      font-size: 12px; font-weight: 600;
+      color: var(--text);
+      font-family: inherit;
+      text-align: left;
+      transition: background .15s;
+    }
+    .changes-toggle:hover { background: var(--bg); }
+    .changes-toggle svg { flex-shrink: 0; }
+
+    .cnt-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      font-size: 10px; font-weight: 800;
+      border: 1px solid;
+    }
+    .cnt-high   { color: var(--red);   background: var(--red-bg);    border-color: var(--red-border); }
+    .cnt-medium { color: var(--amber); background: var(--amber-bg);  border-color: var(--amber-border); }
+    .cnt-review { color: var(--indigo); background: var(--indigo-bg); border-color: var(--indigo-border); }
+
+    .chev { margin-left: auto; color: var(--text-3); transition: transform .2s; flex-shrink: 0; }
+    .chev.open { transform: rotate(180deg); }
+
+    .changes-body { display: none; padding: 0 20px 14px; }
+    .changes-body.open { display: block; }
+
+    /* change item */
+    .chg-item {
+      margin-top: 8px;
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+    }
+    @keyframes chgHL {
+      0%   { background: var(--violet-lt); border-color: var(--violet-border); }
+      70%  { background: var(--violet-lt); border-color: var(--violet-border); }
+      100% { background: var(--surface);  border-color: var(--border); }
+    }
+    .chg-item.is-new { animation: chgHL 2s ease-out; }
+
+    .chg-head {
+      display: flex; align-items: center; gap: 7px;
+      margin-bottom: 8px;
+    }
+    .src-tag {
+      font-size: 9px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: var(--text-2);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .chg-field { font-size: 13px; font-weight: 600; color: var(--text); }
+
+    .tier-pill {
+      margin-left: auto;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 9px; font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+    .tier-HIGH   { color: var(--red);   background: var(--red-bg);    border-color: var(--red-border); }
+    .tier-MEDIUM { color: var(--amber); background: var(--amber-bg);  border-color: var(--amber-border); }
+    .tier-REVIEW_NEEDED { color: var(--indigo); background: var(--indigo-bg); border-color: var(--indigo-border); }
+
+    .chg-vals { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
+    .val-row  { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; }
+    .val-lbl  { color: var(--text-3); font-weight: 700; width: 42px; flex-shrink: 0; padding-top: 1px; }
+    .val-old  { color: var(--text-2); text-decoration: line-through; }
+    .val-new  { color: var(--text); font-weight: 500; }
+    .val-seen { color: var(--text); }
+
+    .chg-url {
+      display: flex; align-items: flex-start; gap: 4px;
+      font-size: 11px;
+      color: var(--violet-dk);
+      text-decoration: none;
+      word-break: break-all;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    .chg-url:hover { text-decoration: underline; }
+    .chg-url svg { flex-shrink: 0; margin-top: 1px; }
+
+    .conf-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .conf-lbl { font-size: 10px; color: var(--text-3); width: 68px; flex-shrink: 0; }
+    .conf-track {
+      flex: 1; height: 3px;
+      background: var(--border-light);
+      border-radius: 2px; overflow: hidden;
+    }
+    .conf-fill { height: 100%; border-radius: 2px; }
+    .conf-val {
+      font-size: 10px; color: var(--text-2);
+      font-variant-numeric: tabular-nums;
+      width: 28px;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────────────────── */
+    .footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-main { font-size: 12px; color: var(--text-2); }
+    .footer-main strong { color: var(--text); }
+    .footer-note { font-size: 11px; color: var(--text-3); text-align: right; }
+
+    /* ── Responsive ───────────────────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      .topbar  { height: auto; padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+      .filterbar { height: auto; padding: 10px 16px; flex-wrap: wrap; }
+      .main { padding: 14px 16px; }
+      .source-grid { grid-template-columns: 1fr; }
+      .footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ── Demo data ────────────────────────────────────────────────────────────────
+
+const RUN_TS = '2026-06-01T06:00:00.000Z';
+
+const DEMO_DATA = [
+  // ── 1. James Smith MD — CLEAR ─────────────────────────────────────────────
+  {
+    npi: '1003000126',
+    displayName: 'James Smith, MD',
+    status: 'CLEAR',
+    nppes: {
+      npi: '1003000126', name: 'JAMES SMITH', credential: 'MD',
+      primaryTaxonomy: 'Family Medicine', taxonomyCategory: 'Physician',
+      practiceAddress: { line1: '123 MEDICAL DR', city: 'CHICAGO', state: 'IL', zip: '60601' },
+      deactivated: false, lastUpdated: '2024-06-15',
+    },
+    oig: { npi: '1003000126', excluded: false, exclusionType: null, exclusionDate: null, reinstatedDate: null },
+    sam: { npi: '1003000126', excluded: false, exclusionType: null },
+    medicareOptOut: { npi: '1003000126', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
+    medicareEnrollment: { npi: '1003000126', enrolled: true, enrollmentType: 'Individual', specialty: 'Family Medicine', state: 'IL', pacId: '4890891564' },
+    stateBoard: { npi: '1003000126', state: 'IL', licenseNumber: 'MD-054-123456', licenseType: 'Medical Doctor', status: 'ACTIVE', expirationDate: '2026-09-30', disciplinaryActions: [], simulated: true },
+    changes: [],
+    error: null,
+  },
+
+  // ── 2. Sarah Johnson MD — REVIEW_NEEDED (address + enrollment state change) ─
+  {
+    npi: '1730139189',
+    displayName: 'Sarah Johnson, MD',
+    status: 'REVIEW_NEEDED',
+    nppes: {
+      npi: '1730139189', name: 'SARAH JOHNSON', credential: 'MD',
+      primaryTaxonomy: 'Internal Medicine', taxonomyCategory: 'Physician',
+      practiceAddress: { line1: '456 WELLNESS BLVD STE 200', city: 'HOUSTON', state: 'TX', zip: '77001' },
+      deactivated: false, lastUpdated: '2026-05-28',
+    },
+    oig: { npi: '1730139189', excluded: false, exclusionType: null, exclusionDate: null, reinstatedDate: null },
+    sam: { npi: '1730139189', excluded: false, exclusionType: null },
+    medicareOptOut: { npi: '1730139189', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
+    medicareEnrollment: { npi: '1730139189', enrolled: true, enrollmentType: 'Individual', specialty: 'Internal Medicine', state: 'TX', pacId: '2860591732' },
+    stateBoard: { npi: '1730139189', state: 'TX', licenseNumber: 'K9876', licenseType: 'Medical Doctor', status: 'ACTIVE', expirationDate: '2026-12-31', disciplinaryActions: [], simulated: true },
+    changes: [
+      {
+        npi: '1730139189', source: 'NPPES', field: 'practiceAddress',
+        oldValue: '8901 MAIN ST, HOUSTON, TX 77002',
+        newValue: '456 WELLNESS BLVD STE 200, HOUSTON, TX 77001',
+        changeType: 'MODIFIED', confidence: 0.70, confidenceTier: 'MEDIUM',
+        sourceUrl: 'https://npiregistry.cms.hhs.gov/api/?number=1730139189&version=2.1',
+        detectedAt: '2026-06-01T06:00:00.000Z',
+      },
+      {
+        npi: '1730139189', source: 'CMS_ENROLLMENT', field: 'enrollmentState',
+        oldValue: 'OK', newValue: 'TX',
+        changeType: 'MODIFIED', confidence: 0.70, confidenceTier: 'MEDIUM',
+        sourceUrl: 'https://data.cms.gov/provider-characteristics/medicare-provider-supplier-enrollment',
+        detectedAt: '2026-06-01T06:00:00.000Z',
+      },
+    ],
+    error: null,
+  },
+
+  // ── 3. Robert Chen MD — FLAG_HIGH (OIG exclusion) ─────────────────────────
+  {
+    npi: '1679576722',
+    displayName: 'Robert Chen, MD',
+    status: 'FLAG_HIGH',
+    nppes: {
+      npi: '1679576722', name: 'ROBERT CHEN', credential: 'MD',
+      primaryTaxonomy: 'Family Medicine', taxonomyCategory: 'Physician',
+      practiceAddress: { line1: '789 HEALTH PKWY', city: 'MIAMI', state: 'FL', zip: '33101' },
+      deactivated: false, lastUpdated: '2024-09-01',
+    },
+    oig: {
+      npi: '1679576722', excluded: true,
+      exclusionType: 'Permissive Exclusion §1128(b)(4) — License Revocation',
+      exclusionDate: '2026-05-01', reinstatedDate: null,
+    },
+    sam: { npi: '1679576722', excluded: false, exclusionType: null },
+    medicareOptOut: { npi: '1679576722', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
+    medicareEnrollment: { npi: '1679576722', enrolled: true, enrollmentType: 'Individual', specialty: 'Family Medicine', state: 'FL', pacId: '3748201956' },
+    stateBoard: { npi: '1679576722', state: 'FL', licenseNumber: 'ME98765', licenseType: 'Medical Doctor', status: 'ACTIVE', expirationDate: '2027-10-31', disciplinaryActions: [], simulated: true },
+    changes: [
+      {
+        npi: '1679576722', source: 'OIG_LEIE', field: 'excluded',
+        oldValue: 'false',
+        newValue: 'true — Permissive Exclusion §1128(b)(4) (effective 2026-05-01)',
+        changeType: 'MODIFIED', confidence: 1.0, confidenceTier: 'HIGH',
+        sourceUrl: 'https://oig.hhs.gov/exclusions/exclusions_databaseresearch.asp',
+        detectedAt: '2026-06-01T06:00:00.000Z',
+      },
+    ],
+    error: null,
+  },
+
+  // ── 4. Riverside Medical Group — FLAG_HIGH (state board disciplinary) ──────
+  {
+    npi: '1558375447',
+    displayName: 'Riverside Medical Group LLC',
+    status: 'FLAG_HIGH',
+    nppes: {
+      npi: '1558375447', name: 'RIVERSIDE MEDICAL GROUP LLC', credential: null,
+      primaryTaxonomy: 'General Acute Care Hospital', taxonomyCategory: 'Hospital',
+      practiceAddress: { line1: '1200 RIVERSIDE DR', city: 'LOS ANGELES', state: 'CA', zip: '90001' },
+      deactivated: false, lastUpdated: '2024-01-20',
+    },
+    oig: { npi: '1558375447', excluded: false, exclusionType: null, exclusionDate: null, reinstatedDate: null },
+    sam: { npi: '1558375447', excluded: false, exclusionType: null },
+    medicareOptOut: { npi: '1558375447', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
+    medicareEnrollment: { npi: '1558375447', enrolled: true, enrollmentType: 'Organization', specialty: 'General Practice', state: 'CA', pacId: '9120384756' },
+    stateBoard: {
+      npi: '1558375447', state: 'CA', licenseNumber: 'ORG-2019-00441',
+      licenseType: 'Medical Corporation', status: 'ACTIVE', expirationDate: '2027-06-30',
+      disciplinaryActions: [
+        {
+          actionType: 'Probation',
+          actionDate: '2026-04-15',
+          description: 'Inadequate supervision of non-physician practitioners; 18-month probationary period with quarterly reporting requirements',
+        },
+      ],
+      simulated: true,
+    },
+    changes: [
+      {
+        npi: '1558375447', source: 'STATE_BOARD', field: 'disciplinaryAction',
+        oldValue: null,
+        newValue: 'Probation (2026-04-15): Inadequate supervision of non-physician practitioners; 18-month probationary period with quarterly reporting requirements',
+        changeType: 'ADDED', confidence: 0.90, confidenceTier: 'HIGH',
+        sourceUrl: 'https://www.mbc.ca.gov/Breeze/License_Verification',
+        detectedAt: '2026-06-01T06:00:00.000Z',
+      },
+    ],
+    error: null,
+  },
+];
+
+// ── Simulate-change mutation pool ────────────────────────────────────────────
+
+const MUTATIONS = [
+  {
+    label: 'James Smith — practice address changed in NPPES',
+    npi: '1003000126',
+    apply(data) {
+      const p = data.find(x => x.npi === '1003000126');
+      p.nppes.practiceAddress = { line1: '2100 W HARRISON ST STE 400', city: 'CHICAGO', state: 'IL', zip: '60612' };
+      p.nppes.lastUpdated = new Date().toISOString().slice(0, 10);
+      p.changes.push({
+        npi: '1003000126', source: 'NPPES', field: 'practiceAddress',
+        oldValue: '123 MEDICAL DR, CHICAGO, IL 60601',
+        newValue: '2100 W HARRISON ST STE 400, CHICAGO, IL 60612',
+        changeType: 'MODIFIED', confidence: 0.70, confidenceTier: 'MEDIUM',
+        sourceUrl: 'https://npiregistry.cms.hhs.gov/api/?number=1003000126&version=2.1',
+        detectedAt: new Date().toISOString(), isNew: true,
+      });
+      p.status = 'REVIEW_NEEDED';
+    },
+  },
+  {
+    label: 'James Smith — credential updated to MD, FAAFP',
+    npi: '1003000126',
+    apply(data) {
+      const p = data.find(x => x.npi === '1003000126');
+      p.nppes.credential = 'MD, FAAFP';
+      p.changes.push({
+        npi: '1003000126', source: 'NPPES', field: 'credential',
+        oldValue: 'MD', newValue: 'MD, FAAFP',
+        changeType: 'MODIFIED', confidence: 0.60, confidenceTier: 'MEDIUM',
+        sourceUrl: 'https://npiregistry.cms.hhs.gov/api/?number=1003000126&version=2.1',
+        detectedAt: new Date().toISOString(), isNew: true,
+      });
+      p.status = 'REVIEW_NEEDED';
+    },
+  },
+  {
+    label: 'Sarah Johnson — SAM.gov exclusion detected',
+    npi: '1730139189',
+    apply(data) {
+      const p = data.find(x => x.npi === '1730139189');
+      p.sam = { npi: '1730139189', excluded: true, exclusionType: 'Ineligible (Proceedings Pending)' };
+      p.changes.push({
+        npi: '1730139189', source: 'SAM_GOV', field: 'excluded',
+        oldValue: 'false', newValue: 'true — Ineligible (Proceedings Pending)',
+        changeType: 'MODIFIED', confidence: 1.0, confidenceTier: 'HIGH',
+        sourceUrl: 'https://sam.gov/search/?index=ei&page=1',
+        detectedAt: new Date().toISOString(), isNew: true,
+      });
+      p.status = 'FLAG_HIGH';
+    },
+  },
+  {
+    label: 'Riverside — Medicare opt-out affidavit filed',
+    npi: '1558375447',
+    apply(data) {
+      const p = data.find(x => x.npi === '1558375447');
+      p.medicareOptOut = { npi: '1558375447', optedOut: true, optOutEffectiveDate: '2026-06-01', optOutEndDate: '2028-06-01', specialty: 'General Practice' };
+      p.changes.push({
+        npi: '1558375447', source: 'CMS_OPT_OUT', field: 'optedOut',
+        oldValue: 'false', newValue: 'true — opted out effective 2026-06-01, ends 2028-06-01',
+        changeType: 'MODIFIED', confidence: 0.90, confidenceTier: 'HIGH',
+        sourceUrl: 'https://data.cms.gov/provider-characteristics/medicare-provider-supplier-enrollment/opt-out-affidavits',
+        detectedAt: new Date().toISOString(), isNew: true,
+      });
+      // Already FLAG_HIGH
+    },
+  },
+  {
+    label: 'Robert Chen — NPI deactivated in NPPES',
+    npi: '1679576722',
+    apply(data) {
+      const p = data.find(x => x.npi === '1679576722');
+      p.nppes.deactivated = true;
+      p.changes.push({
+        npi: '1679576722', source: 'NPPES', field: 'deactivated',
+        oldValue: 'false', newValue: 'true',
+        changeType: 'MODIFIED', confidence: 0.95, confidenceTier: 'HIGH',
+        sourceUrl: 'https://npiregistry.cms.hhs.gov/api/?number=1679576722&version=2.1',
+        detectedAt: new Date().toISOString(), isNew: true,
+      });
+    },
+  },
+];
+
+let mutIdx = 0;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+const SRC_LABELS = {
+  NPPES: 'NPPES', OIG_LEIE: 'OIG LEIE', SAM_GOV: 'SAM.gov',
+  CMS_OPT_OUT: 'Medicare Opt-Out', CMS_ENROLLMENT: 'CMS Enrollment',
+  STATE_BOARD: 'State Board',
+};
+
+function fmtTs(iso) {
+  return new Date(iso).toLocaleString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
+  });
+}
+
+function confColor(c) {
+  if (c >= 0.9) return 'var(--red)';
+  if (c >= 0.6) return 'var(--amber-dot)';
+  return 'var(--violet-dk)';
+}
+
+function statusCfg(status) {
+  if (status === 'FLAG_HIGH')    return { orbCls: 'orb-high',   badgeCls: 'badge-high',   icon: '🚨', label: 'HIGH FLAG' };
+  if (status === 'REVIEW_NEEDED') return { orbCls: 'orb-review', badgeCls: 'badge-review', icon: '⚠',  label: 'REVIEW NEEDED' };
+  return                                 { orbCls: 'orb-clear',  badgeCls: 'badge-clear',  icon: '✓',  label: 'CLEAR' };
+}
+
+function srcRows(p) {
+  const chgSrcs = new Set(p.changes.map(c => c.source));
+  const rows = [];
+
+  if (p.nppes) {
+    const addr = p.nppes.practiceAddress
+      ? `${p.nppes.practiceAddress.city}, ${p.nppes.practiceAddress.state}`
+      : 'unknown';
+    const bad = p.nppes.deactivated;
+    const changed = chgSrcs.has('NPPES');
+    rows.push({
+      id: 'NPPES', name: 'NPPES / NPI Registry',
+      dot: bad ? 'high' : changed ? 'medium' : 'clear',
+      summary: bad
+        ? `DEACTIVATED · ${p.nppes.primaryTaxonomy ?? '—'} · ${addr}`
+        : `Active · ${p.nppes.primaryTaxonomy ?? '—'} · ${addr}`,
+      alertCls: bad ? 'alert-high' : changed ? 'alert-medium' : '',
+    });
+  }
+  if (p.oig) {
+    const bad = p.oig.excluded;
+    const changed = chgSrcs.has('OIG_LEIE');
+    rows.push({
+      id: 'OIG_LEIE', name: 'OIG LEIE',
+      dot: bad ? 'high' : changed ? 'medium' : 'clear',
+      summary: bad
+        ? `EXCLUDED — ${p.oig.exclusionType ?? 'unknown'} (${p.oig.exclusionDate ?? '?'})`
+        : 'Not excluded',
+      alertCls: bad ? 'alert-high' : '',
+    });
+  }
+  if (p.sam) {
+    const bad = p.sam.excluded;
+    const changed = chgSrcs.has('SAM_GOV');
+    rows.push({
+      id: 'SAM_GOV', name: 'SAM.gov',
+      dot: bad ? 'high' : changed ? 'medium' : 'clear',
+      summary: bad
+        ? `EXCLUDED — ${p.sam.exclusionType ?? 'unknown'}`
+        : 'Not excluded',
+      alertCls: bad ? 'alert-high' : '',
+    });
+  }
+  if (p.medicareOptOut) {
+    const bad = p.medicareOptOut.optedOut;
+    const changed = chgSrcs.has('CMS_OPT_OUT');
+    rows.push({
+      id: 'CMS_OPT_OUT', name: 'Medicare Opt-Out',
+      dot: bad ? 'high' : changed ? 'medium' : 'clear',
+      summary: bad
+        ? `OPTED OUT — effective ${p.medicareOptOut.optOutEffectiveDate ?? '?'}`
+        : 'Not opted out',
+      alertCls: bad ? 'alert-high' : '',
+    });
+  }
+  if (p.medicareEnrollment) {
+    const bad = !p.medicareEnrollment.enrolled;
+    const changed = chgSrcs.has('CMS_ENROLLMENT');
+    rows.push({
+      id: 'CMS_ENROLLMENT', name: 'Medicare Enrollment',
+      dot: bad ? 'high' : changed ? 'medium' : 'clear',
+      summary: p.medicareEnrollment.enrolled
+        ? `Enrolled · ${p.medicareEnrollment.enrollmentType ?? '—'} · ${p.medicareEnrollment.specialty ?? '—'}`
+        : 'Not enrolled in Medicare',
+      alertCls: bad ? 'alert-high' : '',
+    });
+  }
+  if (p.stateBoard) {
+    const sb = p.stateBoard;
+    const bad = sb.status === 'REVOKED' || sb.status === 'SUSPENDED';
+    const changed = chgSrcs.has('STATE_BOARD');
+    const hasDisc = sb.disciplinaryActions.length > 0;
+    rows.push({
+      id: 'STATE_BOARD', name: `State Board (${sb.state})`,
+      dot: bad ? 'high' : (hasDisc || changed) ? 'medium' : 'clear',
+      summary: `${sb.status}${sb.expirationDate ? ' · exp ' + sb.expirationDate : ''}${hasDisc ? ` · ${sb.disciplinaryActions.length} disciplinary action${sb.disciplinaryActions.length > 1 ? 's' : ''}` : ''} [sim]`,
+      alertCls: bad ? 'alert-high' : hasDisc ? 'alert-medium' : '',
+    });
+  }
+  return rows;
+}
+
+// ── Render pieces ─────────────────────────────────────────────────────────────
+
+function renderChangeItem(c) {
+  const tc = c.confidenceTier;
+  const valHtml =
+    c.changeType === 'FIRST_SEEN'
+      ? `<div class="val-row"><span class="val-lbl">Seen</span><span class="val-seen">${esc(c.newValue)}</span></div>`
+    : c.changeType === 'ADDED'
+      ? `<div class="val-row"><span class="val-lbl">New</span><span class="val-new">${esc(c.newValue)}</span></div>`
+    : c.changeType === 'REMOVED'
+      ? `<div class="val-row"><span class="val-lbl">Was</span><span class="val-old">${esc(c.oldValue)}</span></div>`
+    : `<div class="val-row"><span class="val-lbl">Before</span><span class="val-old">${esc(c.oldValue)}</span></div>
+       <div class="val-row"><span class="val-lbl">After</span><span class="val-new">${esc(c.newValue)}</span></div>`;
+
+  const pct = Math.round(c.confidence * 100);
+  const color = confColor(c.confidence);
+
+  return `
+    <div class="chg-item${c.isNew ? ' is-new' : ''}">
+      <div class="chg-head">
+        <span class="src-tag">${esc(SRC_LABELS[c.source] || c.source)}</span>
+        <span class="chg-field">${esc(c.field)}</span>
+        <span class="tier-pill tier-${esc(tc)}">${tc === 'REVIEW_NEEDED' ? 'REVIEW' : tc}</span>
+      </div>
+      <div class="chg-vals">${valHtml}</div>
+      <a class="chg-url" href="${esc(c.sourceUrl)}" target="_blank" rel="noopener">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        ${esc(c.sourceUrl)}
+      </a>
+      <div class="conf-row">
+        <span class="conf-lbl">Confidence</span>
+        <div class="conf-track">
+          <div class="conf-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <span class="conf-val">${c.confidence.toFixed(2)}</span>
+      </div>
+    </div>`;
+}
+
+function renderCard(p, open) {
+  const sc = statusCfg(p.status);
+  const rows = srcRows(p);
+  const changes = p.changes;
+  const hasHigh = changes.some(c => c.confidenceTier === 'HIGH');
+  const hasMed  = changes.some(c => c.confidenceTier === 'MEDIUM');
+  const cntCls  = hasHigh ? 'cnt-high' : hasMed ? 'cnt-medium' : 'cnt-review';
+  const cred = p.nppes?.credential ? `, ${p.nppes.credential}` : '';
+  const taxonomy = p.nppes?.taxonomyCategory ?? p.nppes?.primaryTaxonomy ?? '';
+
+  const srcHtml = rows.map(r => `
+    <div class="src-row">
+      <div class="src-dot dot-${r.dot}"></div>
+      <div class="src-info">
+        <div class="src-name">${esc(r.name)}</div>
+        <div class="src-summary${r.alertCls ? ' ' + r.alertCls : ''}">${esc(r.summary)}</div>
+      </div>
+    </div>`).join('');
+
+  const changesHtml = changes.length === 0 ? '' : `
+    <div class="changes-section">
+      <button class="changes-toggle" onclick="toggleChanges('${p.npi}',this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Changes detected
+        <span class="cnt-badge ${cntCls}">${changes.length}</span>
+        <svg class="chev${open ? ' open' : ''}" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div class="changes-body${open ? ' open' : ''}">
+        ${changes.map(c => renderChangeItem(c)).join('')}
+      </div>
+    </div>`;
+
+  return `
+    <div class="card" id="card-${p.npi}" data-status="${p.status}">
+      <div class="card-head">
+        <div class="head-left">
+          <div class="status-orb ${sc.orbCls}">${sc.icon}</div>
+          <div>
+            <div class="prov-name">${esc(p.displayName)}</div>
+            <div class="prov-meta">NPI ${p.npi}${taxonomy ? ' · ' + taxonomy : ''}${esc(cred)}</div>
+          </div>
+        </div>
+        <span class="badge ${sc.badgeCls}">${sc.label}</span>
+      </div>
+      <div class="source-grid">${srcHtml}</div>
+      ${changesHtml}
+    </div>`;
+}
+
+// ── State & render ────────────────────────────────────────────────────────────
+
+let activeFilter = 'ALL';
+let openMap = {};      // npi -> bool
+let toastTimer = null;
+
+function calcSummary(data) {
+  return {
+    changes: data.reduce((s, p) => s + p.changes.length, 0),
+    high:    data.filter(p => p.status === 'FLAG_HIGH').length,
+    review:  data.filter(p => p.status === 'REVIEW_NEEDED').length,
+  };
+}
+
+function render() {
+  const data = DEMO_DATA;
+  const s = calcSummary(data);
+
+  // Default open state: expand changes for HIGH providers
+  data.forEach(p => {
+    if (openMap[p.npi] === undefined) openMap[p.npi] = p.status === 'FLAG_HIGH';
+  });
+
+  const pills = [
+    `<span class="pill">${data.length} providers</span>`,
+    `<span class="pill">6 sources</span>`,
+    `<span class="pill">${s.changes} change${s.changes !== 1 ? 's' : ''}</span>`,
+    s.high   ? `<span class="pill pill-high">${s.high} HIGH flag${s.high > 1 ? 's' : ''}</span>` : '',
+    s.review && !s.high ? `<span class="pill pill-review">${s.review} for review</span>` : '',
+  ].filter(Boolean).join('');
+
+  const FILTERS = [
+    { id: 'ALL',           label: 'All Providers', cls: 'f-all' },
+    { id: 'FLAG_HIGH',     label: 'HIGH',          cls: 'f-high' },
+    { id: 'REVIEW_NEEDED', label: 'MEDIUM',        cls: 'f-medium' },
+    { id: 'CLEAR',         label: 'CLEAR',         cls: 'f-clear' },
+  ];
+
+  const filterBtns = FILTERS.map(f =>
+    `<button class="filter-btn${activeFilter === f.id ? ' ' + f.cls : ''}" onclick="setFilter('${f.id}')">${f.label}</button>`
+  ).join('');
+
+  const cards = data.map(p => renderCard(p, openMap[p.npi])).join('');
+
+  document.getElementById('app').innerHTML = `
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="wordmark">CAQH <em>Provider Verification</em> Agent</div>
+        <div class="divider"></div>
+        <div class="run-ts">Run <strong>${fmtTs(RUN_TS)}</strong></div>
+      </div>
+      <div class="pills">${pills}</div>
+    </header>
+
+    <div class="filterbar">
+      <div class="filter-group">${filterBtns}</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="sim-toast" id="sim-toast"></span>
+        <button class="sim-btn" onclick="simulateChange()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Simulate Change
+        </button>
+      </div>
+    </div>
+
+    <main class="main">${cards}</main>
+
+    <footer class="footer">
+      <span class="footer-main">
+        <strong>Snapshots saved</strong> to ./snapshots/ &nbsp;·&nbsp;
+        Run again to detect further changes
+      </span>
+      <span class="footer-note">
+        Sources: NPPES · OIG LEIE · SAM.gov · CMS Opt-Out · CMS Enrollment · State Board*<br>
+        <em>* State board results are simulated in this demo</em>
+      </span>
+    </footer>`;
+
+  applyFilter();
+}
+
+function applyFilter() {
+  document.querySelectorAll('.card[data-status]').forEach(el => {
+    const show = activeFilter === 'ALL' || el.dataset.status === activeFilter;
+    el.classList.toggle('hidden', !show);
+  });
+}
+
+function setFilter(f) {
+  activeFilter = f;
+  render();
+}
+
+function toggleChanges(npi, btn) {
+  const section = btn.closest('.changes-section');
+  const body  = section.querySelector('.changes-body');
+  const chev  = btn.querySelector('.chev');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+  openMap[npi] = !isOpen;
+}
+
+function simulateChange() {
+  const mut = MUTATIONS[mutIdx % MUTATIONS.length];
+  mutIdx++;
+  mut.apply(DEMO_DATA);
+
+  // Force open the change log of the affected provider
+  openMap[mut.npi] = true;
+
+  render();
+
+  // Flash card and scroll into view
+  requestAnimationFrame(() => {
+    const card = document.getElementById(`card-${mut.npi}`);
+    if (card) {
+      card.classList.remove('flash');
+      void card.offsetWidth; // reflow
+      card.classList.add('flash');
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    // Show toast
+    const toast = document.getElementById('sim-toast');
+    if (toast) {
+      toast.textContent = mut.label;
+      toast.classList.add('visible');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('visible'), 3500);
+    }
+  });
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

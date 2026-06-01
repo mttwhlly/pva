@@ -30,6 +30,20 @@ That's it.
 
 ---
 
+## Dashboard
+
+A self-contained visual dashboard is included at `docs/dashboard.html`. No server or build step required — open it directly in a browser:
+
+```bash
+open docs/dashboard.html        # Mac
+start docs/dashboard.html       # Windows
+xdg-open docs/dashboard.html    # Linux
+```
+
+The dashboard loads embedded demo data representing a realistic verification run (4 providers, 6 sources, a mix of CLEAR / REVIEW NEEDED / HIGH FLAG states). Use the **Simulate Change** button to fire a live diff detection without touching the terminal — address changes, credential updates, SAM.gov exclusions, and more cycle through on each click.
+
+---
+
 ## What it does
 
 Checks providers against 6 public authoritative sources in parallel:
@@ -125,7 +139,8 @@ provider-verify/
 ├── snapshots/                       <- written at runtime, gitignored
 │   └── {npi}.json
 ├── docs/
-│   └── architecture.svg             <- embedded above
+│   ├── architecture.svg             <- embedded above
+│   └── dashboard.html               <- standalone visual dashboard (open directly in browser)
 └── src/
     ├── nucc.ts                      <- NUCC taxonomy crosswalk (bundled)
     ├── types.ts                     <- shared interfaces
