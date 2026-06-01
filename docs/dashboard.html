@@ -440,133 +440,139 @@
 <script>
 // ── Demo data ────────────────────────────────────────────────────────────────
 
-const RUN_TS = '2026-06-01T06:00:00.000Z';
+const RUN_TS = '2026-06-01T17:26:04.834Z';
 
 const DEMO_DATA = [
-  // ── 1. James Smith MD — CLEAR ─────────────────────────────────────────────
+  // ── 1. Ardalan Enkeshafi M.D. — CLEAR ────────────────────────────────────
   {
     npi: '1003000126',
-    displayName: 'James Smith, MD',
+    displayName: 'Ardalan Enkeshafi, M.D.',
     status: 'CLEAR',
     nppes: {
-      npi: '1003000126', name: 'JAMES SMITH', credential: 'MD',
-      primaryTaxonomy: 'Family Medicine', taxonomyCategory: 'Physician',
-      practiceAddress: { line1: '123 MEDICAL DR', city: 'CHICAGO', state: 'IL', zip: '60601' },
-      deactivated: false, lastUpdated: '2024-06-15',
+      npi: '1003000126', name: 'ARDALAN ENKESHAFI', credential: 'M.D.',
+      primaryTaxonomy: 'Hospitalist', taxonomyCategory: null,
+      practiceAddress: { line1: '6410 ROCKLEDGE DR STE 304', city: 'BETHESDA', state: 'MD', zip: '20817' },
+      deactivated: false, lastUpdated: '2025-05-28',
     },
     oig: { npi: '1003000126', excluded: false, exclusionType: null, exclusionDate: null, reinstatedDate: null },
     sam: { npi: '1003000126', excluded: false, exclusionType: null },
     medicareOptOut: { npi: '1003000126', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
-    medicareEnrollment: { npi: '1003000126', enrolled: true, enrollmentType: 'Individual', specialty: 'Family Medicine', state: 'IL', pacId: '4890891564' },
+    medicareEnrollment: { npi: '1003000126', enrolled: false, enrollmentType: null, specialty: null, state: null, pacId: null },
     stateBoard: { npi: '1003000126', state: 'IL', licenseNumber: 'MD-054-123456', licenseType: 'Medical Doctor', status: 'ACTIVE', expirationDate: '2026-09-30', disciplinaryActions: [], simulated: true },
     changes: [],
     error: null,
   },
 
-  // ── 2. Sarah Johnson MD — REVIEW_NEEDED (address + enrollment state change) ─
+  // ── 2. Gregory J. Moran MD — REVIEW_NEEDED (state board expired) ─────────
   {
     npi: '1730139189',
-    displayName: 'Sarah Johnson, MD',
+    displayName: 'Gregory J. Moran, MD',
     status: 'REVIEW_NEEDED',
     nppes: {
-      npi: '1730139189', name: 'SARAH JOHNSON', credential: 'MD',
-      primaryTaxonomy: 'Internal Medicine', taxonomyCategory: 'Physician',
-      practiceAddress: { line1: '456 WELLNESS BLVD STE 200', city: 'HOUSTON', state: 'TX', zip: '77001' },
-      deactivated: false, lastUpdated: '2026-05-28',
+      npi: '1730139189', name: 'GREGORY J MORAN', credential: 'MD',
+      primaryTaxonomy: 'Emergency Medicine', taxonomyCategory: 'Physician',
+      practiceAddress: { line1: '18300 ROSCOE BLVD', city: 'NORTHRIDGE', state: 'CA', zip: '91328' },
+      deactivated: false, lastUpdated: '2007-07-08',
     },
     oig: { npi: '1730139189', excluded: false, exclusionType: null, exclusionDate: null, reinstatedDate: null },
     sam: { npi: '1730139189', excluded: false, exclusionType: null },
     medicareOptOut: { npi: '1730139189', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
-    medicareEnrollment: { npi: '1730139189', enrolled: true, enrollmentType: 'Individual', specialty: 'Internal Medicine', state: 'TX', pacId: '2860591732' },
-    stateBoard: { npi: '1730139189', state: 'TX', licenseNumber: 'K9876', licenseType: 'Medical Doctor', status: 'ACTIVE', expirationDate: '2026-12-31', disciplinaryActions: [], simulated: true },
+    medicareEnrollment: { npi: '1730139189', enrolled: false, enrollmentType: null, specialty: null, state: null, pacId: null },
+    stateBoard: { npi: '1730139189', state: 'TX', licenseNumber: 'K9876', licenseType: 'Medical Doctor', status: 'EXPIRED', expirationDate: '2024-12-31', disciplinaryActions: [], simulated: true },
     changes: [
       {
-        npi: '1730139189', source: 'NPPES', field: 'practiceAddress',
-        oldValue: '8901 MAIN ST, HOUSTON, TX 77002',
-        newValue: '456 WELLNESS BLVD STE 200, HOUSTON, TX 77001',
-        changeType: 'MODIFIED', confidence: 0.70, confidenceTier: 'MEDIUM',
-        sourceUrl: 'https://npiregistry.cms.hhs.gov/api/?number=1730139189&version=2.1',
-        detectedAt: '2026-06-01T06:00:00.000Z',
-      },
-      {
-        npi: '1730139189', source: 'CMS_ENROLLMENT', field: 'enrollmentState',
-        oldValue: 'OK', newValue: 'TX',
-        changeType: 'MODIFIED', confidence: 0.70, confidenceTier: 'MEDIUM',
-        sourceUrl: 'https://data.cms.gov/provider-characteristics/medicare-provider-supplier-enrollment',
-        detectedAt: '2026-06-01T06:00:00.000Z',
+        npi: '1730139189', source: 'STATE_BOARD', field: 'licenseStatus',
+        oldValue: 'ACTIVE',
+        newValue: 'EXPIRED (2024-12-31)',
+        changeType: 'MODIFIED', confidence: 0.85, confidenceTier: 'MEDIUM',
+        sourceUrl: 'https://www.fsmb.org/physician-data-center/state-medical-boards/',
+        detectedAt: '2026-06-01T17:26:04.834Z',
       },
     ],
     error: null,
   },
 
-  // ── 3. Robert Chen MD — FLAG_HIGH (OIG exclusion) ─────────────────────────
+  // ── 3. David A. Wiebe M.D. — FLAG_HIGH (state board disciplinary action) ──
   {
     npi: '1679576722',
-    displayName: 'Robert Chen, MD',
+    displayName: 'David A. Wiebe, M.D.',
     status: 'FLAG_HIGH',
     nppes: {
-      npi: '1679576722', name: 'ROBERT CHEN', credential: 'MD',
-      primaryTaxonomy: 'Family Medicine', taxonomyCategory: 'Physician',
-      practiceAddress: { line1: '789 HEALTH PKWY', city: 'MIAMI', state: 'FL', zip: '33101' },
-      deactivated: false, lastUpdated: '2024-09-01',
+      npi: '1679576722', name: 'DAVID A WIEBE', credential: 'M.D.',
+      primaryTaxonomy: 'Orthopaedic Surgery', taxonomyCategory: 'Physician',
+      practiceAddress: { line1: '3500 CENTRAL AVE', city: 'KEARNEY', state: 'NE', zip: '68847' },
+      deactivated: false, lastUpdated: '2007-07-08',
     },
-    oig: {
-      npi: '1679576722', excluded: true,
-      exclusionType: 'Permissive Exclusion §1128(b)(4) — License Revocation',
-      exclusionDate: '2026-05-01', reinstatedDate: null,
-    },
+    oig: { npi: '1679576722', excluded: false, exclusionType: null, exclusionDate: null, reinstatedDate: null },
     sam: { npi: '1679576722', excluded: false, exclusionType: null },
     medicareOptOut: { npi: '1679576722', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
-    medicareEnrollment: { npi: '1679576722', enrolled: true, enrollmentType: 'Individual', specialty: 'Family Medicine', state: 'FL', pacId: '3748201956' },
-    stateBoard: { npi: '1679576722', state: 'FL', licenseNumber: 'ME98765', licenseType: 'Medical Doctor', status: 'ACTIVE', expirationDate: '2027-10-31', disciplinaryActions: [], simulated: true },
-    changes: [
-      {
-        npi: '1679576722', source: 'OIG_LEIE', field: 'excluded',
-        oldValue: 'false',
-        newValue: 'true — Permissive Exclusion §1128(b)(4) (effective 2026-05-01)',
-        changeType: 'MODIFIED', confidence: 1.0, confidenceTier: 'HIGH',
-        sourceUrl: 'https://oig.hhs.gov/exclusions/exclusions_databaseresearch.asp',
-        detectedAt: '2026-06-01T06:00:00.000Z',
-      },
-    ],
-    error: null,
-  },
-
-  // ── 4. Riverside Medical Group — FLAG_HIGH (state board disciplinary) ──────
-  {
-    npi: '1558375447',
-    displayName: 'Riverside Medical Group LLC',
-    status: 'FLAG_HIGH',
-    nppes: {
-      npi: '1558375447', name: 'RIVERSIDE MEDICAL GROUP LLC', credential: null,
-      primaryTaxonomy: 'General Acute Care Hospital', taxonomyCategory: 'Hospital',
-      practiceAddress: { line1: '1200 RIVERSIDE DR', city: 'LOS ANGELES', state: 'CA', zip: '90001' },
-      deactivated: false, lastUpdated: '2024-01-20',
-    },
-    oig: { npi: '1558375447', excluded: false, exclusionType: null, exclusionDate: null, reinstatedDate: null },
-    sam: { npi: '1558375447', excluded: false, exclusionType: null },
-    medicareOptOut: { npi: '1558375447', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
-    medicareEnrollment: { npi: '1558375447', enrolled: true, enrollmentType: 'Organization', specialty: 'General Practice', state: 'CA', pacId: '9120384756' },
+    medicareEnrollment: { npi: '1679576722', enrolled: false, enrollmentType: null, specialty: null, state: null, pacId: null },
     stateBoard: {
-      npi: '1558375447', state: 'CA', licenseNumber: 'ORG-2019-00441',
-      licenseType: 'Medical Corporation', status: 'ACTIVE', expirationDate: '2027-06-30',
+      npi: '1679576722', state: 'FL', licenseNumber: 'ME98765', licenseType: 'Medical Doctor',
+      status: 'ACTIVE', expirationDate: '2025-10-31',
       disciplinaryActions: [
-        {
-          actionType: 'Probation',
-          actionDate: '2026-04-15',
-          description: 'Inadequate supervision of non-physician practitioners; 18-month probationary period with quarterly reporting requirements',
-        },
+        { actionType: 'Letter of Concern', actionDate: '2024-08-15', description: 'Prescribing practices review — continuing education required' },
       ],
       simulated: true,
     },
     changes: [
       {
+        npi: '1679576722', source: 'STATE_BOARD', field: 'disciplinaryAction',
+        oldValue: null,
+        newValue: 'Letter of Concern (2024-08-15): Prescribing practices review — continuing education required',
+        changeType: 'ADDED', confidence: 0.90, confidenceTier: 'HIGH',
+        sourceUrl: 'https://www.fsmb.org/physician-data-center/state-medical-boards/',
+        detectedAt: '2026-06-01T17:26:04.834Z',
+      },
+    ],
+    error: null,
+  },
+
+  // ── 4. Test Provider D — FLAG_HIGH (NPI deactivated + state board suspended)
+  {
+    npi: '1558375447',
+    displayName: 'Test Provider D',
+    status: 'FLAG_HIGH',
+    nppes: {
+      npi: '1558375447', name: 'NOT FOUND', credential: null,
+      primaryTaxonomy: null, taxonomyCategory: null,
+      practiceAddress: null,
+      deactivated: true, lastUpdated: '2026-06-01T17:26:05.986Z',
+    },
+    oig: { npi: '1558375447', excluded: false, exclusionType: null, exclusionDate: null, reinstatedDate: null },
+    sam: { npi: '1558375447', excluded: false, exclusionType: null },
+    medicareOptOut: { npi: '1558375447', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
+    medicareEnrollment: { npi: '1558375447', enrolled: false, enrollmentType: null, specialty: null, state: null, pacId: null },
+    stateBoard: {
+      npi: '1558375447', state: 'CA', licenseNumber: 'ORG-2019-00441',
+      licenseType: 'Medical Corporation', status: 'SUSPENDED', expirationDate: '2025-06-30',
+      disciplinaryActions: [
+        { actionType: 'Suspension', actionDate: '2025-01-10', description: 'Pending investigation — billing irregularities' },
+      ],
+      simulated: true,
+    },
+    changes: [
+      {
+        npi: '1558375447', source: 'NPPES', field: 'deactivated',
+        oldValue: 'false', newValue: 'true',
+        changeType: 'MODIFIED', confidence: 0.95, confidenceTier: 'HIGH',
+        sourceUrl: 'https://npiregistry.cms.hhs.gov/api/?number=1558375447&version=2.1',
+        detectedAt: '2026-06-01T17:26:04.834Z',
+      },
+      {
+        npi: '1558375447', source: 'STATE_BOARD', field: 'licenseStatus',
+        oldValue: 'ACTIVE', newValue: 'SUSPENDED (2025-06-30)',
+        changeType: 'MODIFIED', confidence: 1.0, confidenceTier: 'HIGH',
+        sourceUrl: 'https://www.mbc.ca.gov/Breeze/License_Verification',
+        detectedAt: '2026-06-01T17:26:04.834Z',
+      },
+      {
         npi: '1558375447', source: 'STATE_BOARD', field: 'disciplinaryAction',
         oldValue: null,
-        newValue: 'Probation (2026-04-15): Inadequate supervision of non-physician practitioners; 18-month probationary period with quarterly reporting requirements',
+        newValue: 'Suspension (2025-01-10): Pending investigation — billing irregularities',
         changeType: 'ADDED', confidence: 0.90, confidenceTier: 'HIGH',
         sourceUrl: 'https://www.mbc.ca.gov/Breeze/License_Verification',
-        detectedAt: '2026-06-01T06:00:00.000Z',
+        detectedAt: '2026-06-01T17:26:04.834Z',
       },
     ],
     error: null,
@@ -577,16 +583,16 @@ const DEMO_DATA = [
 
 const MUTATIONS = [
   {
-    label: 'James Smith — practice address changed in NPPES',
+    label: 'Enkeshafi — practice address updated in NPPES',
     npi: '1003000126',
     apply(data) {
       const p = data.find(x => x.npi === '1003000126');
-      p.nppes.practiceAddress = { line1: '2100 W HARRISON ST STE 400', city: 'CHICAGO', state: 'IL', zip: '60612' };
+      p.nppes.practiceAddress = { line1: '10215 FERNWOOD RD STE 512', city: 'BETHESDA', state: 'MD', zip: '20817' };
       p.nppes.lastUpdated = new Date().toISOString().slice(0, 10);
       p.changes.push({
         npi: '1003000126', source: 'NPPES', field: 'practiceAddress',
-        oldValue: '123 MEDICAL DR, CHICAGO, IL 60601',
-        newValue: '2100 W HARRISON ST STE 400, CHICAGO, IL 60612',
+        oldValue: '6410 ROCKLEDGE DR STE 304, BETHESDA, MD 20817',
+        newValue: '10215 FERNWOOD RD STE 512, BETHESDA, MD 20817',
         changeType: 'MODIFIED', confidence: 0.70, confidenceTier: 'MEDIUM',
         sourceUrl: 'https://npiregistry.cms.hhs.gov/api/?number=1003000126&version=2.1',
         detectedAt: new Date().toISOString(), isNew: true,
@@ -595,14 +601,14 @@ const MUTATIONS = [
     },
   },
   {
-    label: 'James Smith — credential updated to MD, FAAFP',
+    label: 'Enkeshafi — credential updated to M.D., FACP',
     npi: '1003000126',
     apply(data) {
       const p = data.find(x => x.npi === '1003000126');
-      p.nppes.credential = 'MD, FAAFP';
+      p.nppes.credential = 'M.D., FACP';
       p.changes.push({
         npi: '1003000126', source: 'NPPES', field: 'credential',
-        oldValue: 'MD', newValue: 'MD, FAAFP',
+        oldValue: 'M.D.', newValue: 'M.D., FACP',
         changeType: 'MODIFIED', confidence: 0.60, confidenceTier: 'MEDIUM',
         sourceUrl: 'https://npiregistry.cms.hhs.gov/api/?number=1003000126&version=2.1',
         detectedAt: new Date().toISOString(), isNew: true,
@@ -611,7 +617,7 @@ const MUTATIONS = [
     },
   },
   {
-    label: 'Sarah Johnson — SAM.gov exclusion detected',
+    label: 'Moran — SAM.gov exclusion detected',
     npi: '1730139189',
     apply(data) {
       const p = data.find(x => x.npi === '1730139189');
@@ -627,32 +633,31 @@ const MUTATIONS = [
     },
   },
   {
-    label: 'Riverside — Medicare opt-out affidavit filed',
+    label: 'Wiebe — OIG exclusion added',
+    npi: '1679576722',
+    apply(data) {
+      const p = data.find(x => x.npi === '1679576722');
+      p.oig = { npi: '1679576722', excluded: true, exclusionType: 'Permissive Exclusion §1128(b)(4)', exclusionDate: '2026-06-01', reinstatedDate: null };
+      p.changes.push({
+        npi: '1679576722', source: 'OIG_LEIE', field: 'excluded',
+        oldValue: 'false', newValue: 'true — Permissive Exclusion §1128(b)(4) (effective 2026-06-01)',
+        changeType: 'MODIFIED', confidence: 1.0, confidenceTier: 'HIGH',
+        sourceUrl: 'https://oig.hhs.gov/exclusions',
+        detectedAt: new Date().toISOString(), isNew: true,
+      });
+    },
+  },
+  {
+    label: 'Test Provider D — Medicare opt-out filed',
     npi: '1558375447',
     apply(data) {
       const p = data.find(x => x.npi === '1558375447');
-      p.medicareOptOut = { npi: '1558375447', optedOut: true, optOutEffectiveDate: '2026-06-01', optOutEndDate: '2028-06-01', specialty: 'General Practice' };
+      p.medicareOptOut = { npi: '1558375447', optedOut: true, optOutEffectiveDate: '2026-06-01', optOutEndDate: '2028-06-01', specialty: null };
       p.changes.push({
         npi: '1558375447', source: 'CMS_OPT_OUT', field: 'optedOut',
         oldValue: 'false', newValue: 'true — opted out effective 2026-06-01, ends 2028-06-01',
         changeType: 'MODIFIED', confidence: 0.90, confidenceTier: 'HIGH',
         sourceUrl: 'https://data.cms.gov/provider-characteristics/medicare-provider-supplier-enrollment/opt-out-affidavits',
-        detectedAt: new Date().toISOString(), isNew: true,
-      });
-      // Already FLAG_HIGH
-    },
-  },
-  {
-    label: 'Robert Chen — NPI deactivated in NPPES',
-    npi: '1679576722',
-    apply(data) {
-      const p = data.find(x => x.npi === '1679576722');
-      p.nppes.deactivated = true;
-      p.changes.push({
-        npi: '1679576722', source: 'NPPES', field: 'deactivated',
-        oldValue: 'false', newValue: 'true',
-        changeType: 'MODIFIED', confidence: 0.95, confidenceTier: 'HIGH',
-        sourceUrl: 'https://npiregistry.cms.hhs.gov/api/?number=1679576722&version=2.1',
         detectedAt: new Date().toISOString(), isNew: true,
       });
     },
