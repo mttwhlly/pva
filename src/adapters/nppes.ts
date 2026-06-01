@@ -9,6 +9,8 @@ export async function fetchNppes(npi: string): Promise<NppesRecord> {
   const url = `${BASE}/?number=${npi}&version=2.1`
   const res = await fetch(url, {
     headers: { 'Accept': 'application/json', 'User-Agent': 'CAQH-ProviderVerify/0.1' }
+  }).catch((err: any) => {
+    throw new Error(`NPPES network error for NPI ${npi} — ${err.message}`)
   })
 
   if (!res.ok) throw new Error(`NPPES HTTP ${res.status} for NPI ${npi}`)

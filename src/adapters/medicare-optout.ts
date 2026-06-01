@@ -17,7 +17,12 @@ export async function fetchMedicareOptOut(npi: string): Promise<MedicareOptOutRe
       'Accept': 'application/json',
       'User-Agent': 'CAQH-ProviderVerify/0.1',
     }
+  }).catch((err: any) => {
+    console.warn(`  ⚠ CMS Opt-Out network error for NPI ${npi} — ${err.message}`)
+    return null
   })
+
+  if (!res) return { npi, optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null }
 
   if (!res.ok) {
     console.warn(`  ⚠ CMS Opt-Out API returned ${res.status} for NPI ${npi}`)

@@ -28,6 +28,23 @@ npm run verify
 
 That's it.
 
+### Corporate / VPN networks
+
+If you're on a network with SSL inspection (common on work laptops and VMs), Node may refuse connections with `unable to get local issuer certificate`. Set this env var before running:
+
+```bash
+# Mac / Linux
+NODE_TLS_REJECT_UNAUTHORIZED=0 npm run verify
+
+# Windows cmd
+set NODE_TLS_REJECT_UNAUTHORIZED=0 && npm run verify
+
+# Windows PowerShell
+$env:NODE_TLS_REJECT_UNAUTHORIZED=0; npm run verify
+```
+
+This tells Node to accept the proxy's certificate. Safe for this demo — all sources are read-only public government APIs.
+
 ---
 
 ## Dashboard

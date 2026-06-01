@@ -1,6 +1,7 @@
 node_modules/
 dist/
 snapshots/
+.cache/
 .DS_Store
 .claude/
 *.local.json
