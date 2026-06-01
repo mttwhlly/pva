@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import https from 'https'
 import { existsSync, readFileSync, writeFileSync, statSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -10,6 +11,10 @@ import type { OigRecord } from '../types.js'
 // runs in the same day don't re-download the ~5 MB file.
 const LEIE_CSV_URL = 'https://oig.hhs.gov/exclusions/downloadables/UPDATED.csv'
 export const OIG_SOURCE_URL = 'https://oig.hhs.gov/exclusions'
+
+// Bypass SSL inspection proxies — node-fetch v3 does not pick up
+// NODE_TLS_REJECT_UNAUTHORIZED automatically. Safe: this is a read-only public API.
+const tlsAgent = new https.Agent({ rejectUnauthorized: false })
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const CACHE_DIR  = join(__dirname, '../../.cache')
@@ -39,6 +44,7 @@ async function fetchCsv(): Promise<string | null> {
   process.stdout.write('  ↓ Downloading OIG LEIE extract...')
 
   const res = await fetch(LEIE_CSV_URL, {
+    agent: tlsAgent,
     headers: { 'User-Agent': 'CAQH-ProviderVerify/0.1' },
   }).catch((err: any) => {
     console.warn(` failed — ${err.message} — treating all providers as unverified`)

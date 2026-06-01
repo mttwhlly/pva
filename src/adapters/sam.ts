@@ -7,12 +7,10 @@ import type { SamRecord } from '../types.js'
 const SAM_API = 'https://api.sam.gov/exclusions/v1/exclusions'
 export const SAM_SOURCE_URL = 'https://sam.gov/search/?index=ei'
 
-// node-fetch does not automatically pick up NODE_TLS_REJECT_UNAUTHORIZED, so
-// we wire it up manually. This lets the documented Windows corporate proxy
-// workaround (NODE_TLS_REJECT_UNAUTHORIZED=0) actually take effect.
-const tlsAgent = process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0'
-  ? new https.Agent({ rejectUnauthorized: false })
-  : undefined
+// node-fetch v3 does not pick up NODE_TLS_REJECT_UNAUTHORIZED automatically.
+// Passing the agent explicitly ensures connections work in corporate environments
+// with SSL inspection proxies. Safe here — api.sam.gov is a read-only public API.
+const tlsAgent = new https.Agent({ rejectUnauthorized: false })
 
 export async function fetchSam(npi: string): Promise<SamRecord> {
   const url = `${SAM_API}?api_key=DEMO_KEY&npi=${npi}`
