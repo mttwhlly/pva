@@ -57,18 +57,18 @@ const SEED_DATA: Record<string, SeedEntry> = {
       },
     ],
   },
-  // Suspended license — generates HIGH flag
-  '1558375447': {
-    state: 'CA',
-    licenseNumber: 'ORG-2019-00441',
-    licenseType: 'Medical Corporation',
-    status: 'SUSPENDED',
-    expirationDate: '2025-06-30',
+  // Revoked license (real OIG excluded org) — generates HIGH flag
+  '1215968847': {
+    state: 'FL',
+    licenseNumber: 'CLINIC-FL-2008-00892',
+    licenseType: 'Mental Health Clinic',
+    status: 'REVOKED',
+    expirationDate: '2016-06-30',
     disciplinaryActions: [
       {
-        actionType: 'Suspension',
-        actionDate: '2025-01-10',
-        description: 'Pending investigation — billing irregularities',
+        actionType: 'Revocation',
+        actionDate: '2016-01-20',
+        description: 'License revoked following federal OIG exclusion — §1128(a)(1) conviction of Medicare/Medicaid fraud',
       },
     ],
   },

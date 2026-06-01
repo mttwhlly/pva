@@ -528,50 +528,50 @@ const DEMO_DATA = [
     error: null,
   },
 
-  // ── 4. Test Provider D — FLAG_HIGH (NPI deactivated + state board suspended)
+  // ── 4. American Therapeutic Corp. — FLAG_HIGH (real OIG exclusion, FL license revoked)
   {
-    npi: '1558375447',
-    displayName: 'Test Provider D',
+    npi: '1215968847',
+    displayName: 'American Therapeutic Corp.',
     status: 'FLAG_HIGH',
     nppes: {
-      npi: '1558375447', name: 'NOT FOUND', credential: null,
-      primaryTaxonomy: null, taxonomyCategory: null,
-      practiceAddress: null,
-      deactivated: true, lastUpdated: '2026-06-01T17:26:05.986Z',
+      npi: '1215968847', name: 'AMERICAN THERAPEUTIC CORPORATION', credential: null,
+      primaryTaxonomy: 'Mental Health Clinic (261QM0801X)', taxonomyCategory: 'Clinic/Center',
+      practiceAddress: { line1: '1801 NE 2ND AVE', city: 'MIAMI', state: 'FL', zip: '33132' },
+      deactivated: false, lastUpdated: '2020-08-22T00:00:00.000Z',
     },
-    oig: { npi: '1558375447', excluded: false, exclusionType: null, exclusionDate: null, reinstatedDate: null },
-    sam: { npi: '1558375447', excluded: false, exclusionType: null },
-    medicareOptOut: { npi: '1558375447', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
-    medicareEnrollment: { npi: '1558375447', enrolled: false, enrollmentType: null, specialty: null, state: null, pacId: null },
+    oig: { npi: '1215968847', excluded: true, exclusionType: '§1128(a)(1) — Conviction of Medicare/Medicaid Fraud', exclusionDate: '2012-03-20', reinstatedDate: null },
+    sam: { npi: '1215968847', excluded: false, exclusionType: null },
+    medicareOptOut: { npi: '1215968847', optedOut: false, optOutEffectiveDate: null, optOutEndDate: null, specialty: null },
+    medicareEnrollment: { npi: '1215968847', enrolled: false, enrollmentType: null, specialty: null, state: null, pacId: null },
     stateBoard: {
-      npi: '1558375447', state: 'CA', licenseNumber: 'ORG-2019-00441',
-      licenseType: 'Medical Corporation', status: 'SUSPENDED', expirationDate: '2025-06-30',
+      npi: '1215968847', state: 'FL', licenseNumber: 'CLINIC-FL-2008-00892',
+      licenseType: 'Mental Health Clinic', status: 'REVOKED', expirationDate: '2016-06-30',
       disciplinaryActions: [
-        { actionType: 'Suspension', actionDate: '2025-01-10', description: 'Pending investigation — billing irregularities' },
+        { actionType: 'Revocation', actionDate: '2016-01-20', description: 'License revoked following federal OIG exclusion — §1128(b)(7) financial misconduct' },
       ],
       simulated: true,
     },
     changes: [
       {
-        npi: '1558375447', source: 'NPPES', field: 'deactivated',
-        oldValue: 'false', newValue: 'true',
-        changeType: 'MODIFIED', confidence: 0.95, confidenceTier: 'HIGH',
-        sourceUrl: 'https://npiregistry.cms.hhs.gov/api/?number=1558375447&version=2.1',
-        detectedAt: '2026-06-01T17:26:04.834Z',
-      },
-      {
-        npi: '1558375447', source: 'STATE_BOARD', field: 'licenseStatus',
-        oldValue: 'ACTIVE', newValue: 'SUSPENDED (2025-06-30)',
+        npi: '1215968847', source: 'OIG_LEIE', field: 'excluded',
+        oldValue: 'false', newValue: 'true — §1128(a)(1) Conviction of Medicare/Medicaid Fraud (effective 2012-03-20)',
         changeType: 'MODIFIED', confidence: 1.0, confidenceTier: 'HIGH',
-        sourceUrl: 'https://www.mbc.ca.gov/Breeze/License_Verification',
+        sourceUrl: 'https://oig.hhs.gov/exclusions',
         detectedAt: '2026-06-01T17:26:04.834Z',
       },
       {
-        npi: '1558375447', source: 'STATE_BOARD', field: 'disciplinaryAction',
+        npi: '1215968847', source: 'STATE_BOARD', field: 'licenseStatus',
+        oldValue: 'ACTIVE', newValue: 'REVOKED (2016-06-30)',
+        changeType: 'MODIFIED', confidence: 1.0, confidenceTier: 'HIGH',
+        sourceUrl: 'https://appsmqa.doh.state.fl.us/MQASearchServices/HealthCareProviders',
+        detectedAt: '2026-06-01T17:26:04.834Z',
+      },
+      {
+        npi: '1215968847', source: 'STATE_BOARD', field: 'disciplinaryAction',
         oldValue: null,
-        newValue: 'Suspension (2025-01-10): Pending investigation — billing irregularities',
+        newValue: 'Revocation (2016-01-20): License revoked following federal OIG exclusion — §1128(a)(1) Medicare fraud conviction',
         changeType: 'ADDED', confidence: 0.90, confidenceTier: 'HIGH',
-        sourceUrl: 'https://www.mbc.ca.gov/Breeze/License_Verification',
+        sourceUrl: 'https://appsmqa.doh.state.fl.us/MQASearchServices/HealthCareProviders',
         detectedAt: '2026-06-01T17:26:04.834Z',
       },
     ],
@@ -648,16 +648,18 @@ const MUTATIONS = [
     },
   },
   {
-    label: 'Test Provider D — Medicare opt-out filed',
-    npi: '1558375447',
+    label: 'American Therapeutic — §1128(a)(1) conviction added to LEIE',
+    npi: '1215968847',
     apply(data) {
-      const p = data.find(x => x.npi === '1558375447');
-      p.medicareOptOut = { npi: '1558375447', optedOut: true, optOutEffectiveDate: '2026-06-01', optOutEndDate: '2028-06-01', specialty: null };
+      const p = data.find(x => x.npi === '1215968847');
+      p.oig.exclusionType = '§1128(a)(1) — Conviction of Medicare/Medicaid Fraud';
+      p.oig.exclusionDate = '2012-03-20';
       p.changes.push({
-        npi: '1558375447', source: 'CMS_OPT_OUT', field: 'optedOut',
-        oldValue: 'false', newValue: 'true — opted out effective 2026-06-01, ends 2028-06-01',
-        changeType: 'MODIFIED', confidence: 0.90, confidenceTier: 'HIGH',
-        sourceUrl: 'https://data.cms.gov/provider-characteristics/medicare-provider-supplier-enrollment/opt-out-affidavits',
+        npi: '1215968847', source: 'OIG_LEIE', field: 'exclusionType',
+        oldValue: '§1128(b)(7) — Financial Misconduct (2016-01-15)',
+        newValue: '§1128(a)(1) — Conviction of Medicare/Medicaid Fraud (effective 2012-03-20)',
+        changeType: 'MODIFIED', confidence: 1.0, confidenceTier: 'HIGH',
+        sourceUrl: 'https://oig.hhs.gov/exclusions',
         detectedAt: new Date().toISOString(), isNew: true,
       });
     },
